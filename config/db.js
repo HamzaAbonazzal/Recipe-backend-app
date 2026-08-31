@@ -3,21 +3,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const db = mysql.createConnection({
+// إنشاء Connection Pool موحد وشامل لجميع إعدادات Aiven
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT) || 25060,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false }, // مهم جداً للاتصال بـ Aiven بأمان SSL
-});
-
-// إنشاء Connection Pool لإدارة الاتصالات بكفاءة عالية
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "recipe_db",
+  ssl: { rejectUnauthorized: false }, // تفعيل SSL للـ Pool بالكامل
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -27,7 +20,7 @@ const pool = mysql.createPool({
 export const testConnection = async () => {
   try {
     const connection = await pool.getConnection();
-    console.log("✅ Connected to MySQL Database successfully!");
+    console.log("✅ Connected to Aiven MySQL Database successfully!");
     connection.release();
   } catch (error) {
     console.error("❌ Database connection failed:", error.message);

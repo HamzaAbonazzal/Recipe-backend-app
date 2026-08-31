@@ -33,3 +33,14 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on Port: ${PORT}`);
 });
+
+// إجراء استعلام بسيط كل 10 دقائق لمنع Aiven من الدخول في وضع الخمول
+setInterval(
+  () => {
+    db.query("SELECT 1", (err) => {
+      if (err) console.error("Ping error:", err.message);
+      else console.log("Database keep-alive ping sent.");
+    });
+  },
+  10 * 60 * 1000,
+); // 10 دقائق
