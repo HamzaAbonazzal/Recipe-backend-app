@@ -31,9 +31,18 @@ export const addRecipe = async (req, res) => {
 
     // حفظ رابط الصورة في قاعدة البيانات
     // const imageUrl = `/uploads/${req.file.filename}`;
-    const imageUrl = `/${req.file.filename}`;
+    // const imageUrl = `/${req.file.filename}`;
 
-    const [result] = await pool.query(
+    // const [result] = await pool.query(
+    //   "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
+    //   [title_ar, title_en, details_ar, details_en, imageUrl],
+    // );
+
+    // ✅ الصح (يعطيك رابط Cloudinary الكامل المباشر):
+    const imageUrl = req.file ? req.file.path : null;
+
+    // حفظ imageUrl في قاعدة البيانات
+    await pool.query(
       "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
       [title_ar, title_en, details_ar, details_en, imageUrl],
     );
