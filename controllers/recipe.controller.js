@@ -30,7 +30,8 @@ export const addRecipe = async (req, res) => {
     }
 
     // حفظ رابط الصورة في قاعدة البيانات
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = `/${req.file.filename}`;
 
     const [result] = await pool.query(
       "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
