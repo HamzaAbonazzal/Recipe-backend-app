@@ -35,12 +35,25 @@ app.listen(PORT, () => {
 });
 
 // إجراء استعلام بسيط كل 10 دقائق لمنع Aiven من الدخول في وضع الخمول
+// setInterval(
+//   () => {
+//     db.query("SELECT 1", (err) => {
+//       if (err) console.error("Ping error:", err.message);
+//       else console.log("Database keep-alive ping sent.");
+//     });
+//   },
+//   10 * 60 * 1000,
+// ); // 10 دقائق
+
+// إجراء استعلام بسيط كل 10 دقائق لمنع Aiven من الدخول في وضع الخمول
 setInterval(
-  () => {
-    db.query("SELECT 1", (err) => {
-      if (err) console.error("Ping error:", err.message);
-      else console.log("Database keep-alive ping sent.");
-    });
+  async () => {
+    try {
+      await pool.query("SELECT 1");
+      console.log("✅ Database keep-alive ping sent.");
+    } catch (err) {
+      console.error("❌ Ping error:", err.message);
+    }
   },
   10 * 60 * 1000,
-); // 10 دقائق
+); // كل 10 دقائق
