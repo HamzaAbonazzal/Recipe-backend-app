@@ -16,88 +16,138 @@ export const getRecipes = async (req, res) => {
 };
 
 // 2. إضافة وصفة جديدة
+// export const addRecipe = async (req, res) => {
+//   try {
+//     const { title_ar, title_en, details_ar, details_en } = req.body;
+
+//     // التحقق من وجود الصورة والبيانات الأساسية
+//     if (!req.file) {
+//       return res.status(400).json({ message: "يرجى رفع صورة للوصفة" });
+//     }
+
+//     if (!title_ar || !title_en || !details_ar || !details_en) {
+//       return res.status(400).json({ message: "جميع الحقول مطلوبة" });
+//     }
+
+//     // حفظ رابط الصورة في قاعدة البيانات
+//     // const imageUrl = `/uploads/${req.file.filename}`;
+//     // const imageUrl = `/${req.file.filename}`;
+
+//     // const [result] = await pool.query(
+//     //   "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
+//     //   [title_ar, title_en, details_ar, details_en, imageUrl],
+//     // );
+
+//     // ✅ الصح (يعطيك رابط Cloudinary الكامل المباشر):
+//     const imageUrl = req.file ? req.file.path : null;
+
+//     // حفظ imageUrl في قاعدة البيانات
+//     await pool.query(
+//       "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
+//       [title_ar, title_en, details_ar, details_en, imageUrl],
+//     );
+
+//     const newRecipe = {
+//       id: result.insertId,
+//       title_ar,
+//       title_en,
+//       details_ar,
+//       details_en,
+//       image_url: imageUrl,
+//       created_at: new Date(),
+//     };
+
+//     res
+//       .status(201)
+//       .json({ message: "تمت إضافة الوصفة بنجاح", recipe: newRecipe });
+//   } catch (error) {
+//     console.error("Error adding recipe:", error);
+//     res.status(500).json({ message: "حدث خطأ أثناء إضافة الوصفة" });
+//   }
+// };
+
 export const addRecipe = async (req, res) => {
   try {
-    const { title_ar, title_en, details_ar, details_en } = req.body;
+    const { title_ar, title_en, details_ar, details_en, category } = req.body;
 
-    // التحقق من وجود الصورة والبيانات الأساسية
-    if (!req.file) {
-      return res.status(400).json({ message: "يرجى رفع صورة للوصفة" });
-    }
-
-    if (!title_ar || !title_en || !details_ar || !details_en) {
-      return res.status(400).json({ message: "جميع الحقول مطلوبة" });
-    }
-
-    // حفظ رابط الصورة في قاعدة البيانات
-    // const imageUrl = `/uploads/${req.file.filename}`;
-    // const imageUrl = `/${req.file.filename}`;
-
-    // const [result] = await pool.query(
-    //   "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
-    //   [title_ar, title_en, details_ar, details_en, imageUrl],
-    // );
-
-    // ✅ الصح (يعطيك رابط Cloudinary الكامل المباشر):
+    // ✅ أخذ رابط Cloudinary المباشر
     const imageUrl = req.file ? req.file.path : null;
 
-    // حفظ imageUrl في قاعدة البيانات
-    await pool.query(
-      "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, image_url) VALUES (?, ?, ?, ?, ?)",
-      [title_ar, title_en, details_ar, details_en, imageUrl],
+    // ✅ استخدام [result] بالتعيين المباشر لتجنب ReferenceError
+    const [result] = await pool.query(
+      "INSERT INTO recipes (title_ar, title_en, details_ar, details_en, category, image_url) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        title_ar,
+        title_en,
+        details_ar,
+        details_en,
+        category || "main",
+        imageUrl,
+      ],
     );
 
-    const newRecipe = {
+    res.status(201).json({
       id: result.insertId,
-      title_ar,
-      title_en,
-      details_ar,
-      details_en,
+      message: "تمت إضافة الوصفة بنجاح",
       image_url: imageUrl,
-      created_at: new Date(),
-    };
-
-    res
-      .status(201)
-      .json({ message: "تمت إضافة الوصفة بنجاح", recipe: newRecipe });
+    });
   } catch (error) {
-    console.error("Error adding recipe:", error);
-    res.status(500).json({ message: "حدث خطأ أثناء إضافة الوصفة" });
+    console.error("Error creating recipe:", error);
+    res.status(500).json({ error: "حدث خطأ أثناء إضافة الوصفة" });
   }
 };
 
 // 3. حذف وصفة مع صورتها
+// export const deleteRecipe = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     // أولاً: العثور على الوصفة لمعرفة رابط الصورة
+//     const [rows] = await pool.query(
+//       "SELECT image_url FROM recipes WHERE id = ?",
+//       [id],
+//     );
+
+//     if (rows.length === 0) {
+//       return res.status(404).json({ message: "الوصفة غير موجودة" });
+//     }
+
+//     const imagePath = rows[0].image_url;
+
+//     // ثانياً: حذف الوصفة من قاعدة البيانات
+//     await pool.query("DELETE FROM recipes WHERE id = ?", [id]);
+
+//     // ثالثاً: حذف ملف الصورة من المجلد محلياً
+//     if (imagePath) {
+//       const fullPath = path.join(process.cwd(), imagePath);
+//       fs.unlink(fullPath, (err) => {
+//         if (err) console.error("لم يتم العثور على الصورة لحذفها:", err);
+//       });
+//     }
+
+//     res.status(200).json({ message: "تم حذف الوصفة وصورتها بنجاح" });
+//   } catch (error) {
+//     console.error("Error deleting recipe:", error);
+//     res.status(500).json({ message: "حدث خطأ أثناء حذف الوصفة" });
+//   }
+// };
+
 export const deleteRecipe = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // أولاً: العثور على الوصفة لمعرفة رابط الصورة
-    const [rows] = await pool.query(
-      "SELECT image_url FROM recipes WHERE id = ?",
-      [id],
-    );
+    // ✅ تنفيذ استعلام الحذف وتخزين النتيجة في [result]
+    const [result] = await pool.query("DELETE FROM recipes WHERE id = ?", [id]);
 
-    if (rows.length === 0) {
+    // إذا لم يجد السيرفر الوصفة برقم الـ ID المطلوب
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: "الوصفة غير موجودة" });
     }
 
-    const imagePath = rows[0].image_url;
-
-    // ثانياً: حذف الوصفة من قاعدة البيانات
-    await pool.query("DELETE FROM recipes WHERE id = ?", [id]);
-
-    // ثالثاً: حذف ملف الصورة من المجلد محلياً
-    if (imagePath) {
-      const fullPath = path.join(process.cwd(), imagePath);
-      fs.unlink(fullPath, (err) => {
-        if (err) console.error("لم يتم العثور على الصورة لحذفها:", err);
-      });
-    }
-
-    res.status(200).json({ message: "تم حذف الوصفة وصورتها بنجاح" });
+    res.json({ message: "تم حذف الوصفة بنجاح" });
   } catch (error) {
     console.error("Error deleting recipe:", error);
-    res.status(500).json({ message: "حدث خطأ أثناء حذف الوصفة" });
+    res.status(500).json({ error: "حدث خطأ أثناء حذف الوصفة" });
   }
 };
 
