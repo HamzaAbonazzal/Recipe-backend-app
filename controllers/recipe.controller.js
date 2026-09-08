@@ -220,41 +220,28 @@ export const updateRecipe = async (req, res) => {
   try {
     // 2. بناء استعلام التحديث بشكل دقيق
     let query = `
-      UPDATE recipes 
+      UPDATE recipes
       SET title_ar=?, title_en=?, details_ar=?, details_en=?, category=?, prep_time=?, servings=?
       ${image_url ? ", image_url=?" : ""}
       WHERE id=?
     `;
 
     // 3. ترتيب القيم الممررة لقاعدة البيانات
-    let params = image_url
-      ? [
-          title_ar,
-          title_en,
-          details_ar,
-          details_en,
-          category,
-          prep_time,
-          servings,
-          image_url,
-          id,
-        ]
-      : [
-          title_ar,
-          title_en,
-          details_ar,
-          details_en,
-          category,
-          prep_time,
-          servings,
-          id,
-        ];
+    let params = [
+      title_ar || null,
+      title_en || null,
+      details_ar || null,
+      details_en || null,
+      category || "main",
+      prep_time || null,
+      servings || null,
+    ];
 
-    // if (image_url) {
-    //   params.push(image_url);
-    // }
+    if (image_url) {
+      params.push(image_url);
+    }
 
-    // params.push(id); // إضافة الـ ID في النهاية لتلبية شرط WHERE id=?
+    params.push(id); // إضافة الـ ID في النهاية لتلبية شرط WHERE id=?
 
     await db.query(query, params);
     res.json({ message: "Recipe updated successfully" });
