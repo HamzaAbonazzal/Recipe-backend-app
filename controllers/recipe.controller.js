@@ -151,6 +151,57 @@ export const deleteRecipe = async (req, res) => {
   }
 };
 
+// export const updateRecipe = async (req, res) => {
+//   const { id } = req.params;
+//   const {
+//     title_ar,
+//     title_en,
+//     details_ar,
+//     details_en,
+//     category,
+//     prep_time,
+//     servings,
+//   } = req.body;
+//   const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+
+//   try {
+//     let query = `
+//       UPDATE recipes
+//       SET title_ar=?, title_en=?, details_ar=?, details_en=?, category=?, prep_time=?, servings=?
+//       ${image_url ? ", image_url=?" : ""}
+//       WHERE id=?
+//     `;
+
+//     let params = image_url
+//       ? [
+//           title_ar,
+//           title_en,
+//           details_ar,
+//           details_en,
+//           category,
+//           prep_time,
+//           servings,
+//           image_url,
+//           id,
+//         ]
+//       : [
+//           title_ar,
+//           title_en,
+//           details_ar,
+//           details_en,
+//           category,
+//           prep_time,
+//           servings,
+//           id,
+//         ];
+
+//     await db.query(query, params);
+//     res.json({ message: "Recipe updated successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 export const updateRecipe = async (req, res) => {
   const { id } = req.params;
   const {
@@ -176,21 +227,34 @@ export const updateRecipe = async (req, res) => {
     `;
 
     // 3. ترتيب القيم الممررة لقاعدة البيانات
-    let params = [
-      title_ar || null,
-      title_en || null,
-      details_ar || null,
-      details_en || null,
-      category || "main",
-      prep_time || null,
-      servings || null,
-    ];
+    let params = image_url
+      ? [
+          title_ar,
+          title_en,
+          details_ar,
+          details_en,
+          category,
+          prep_time,
+          servings,
+          image_url,
+          id,
+        ]
+      : [
+          title_ar,
+          title_en,
+          details_ar,
+          details_en,
+          category,
+          prep_time,
+          servings,
+          id,
+        ];
 
-    if (image_url) {
-      params.push(image_url);
-    }
+    // if (image_url) {
+    //   params.push(image_url);
+    // }
 
-    params.push(id); // إضافة الـ ID في النهاية لتلبية شرط WHERE id=?
+    // params.push(id); // إضافة الـ ID في النهاية لتلبية شرط WHERE id=?
 
     await db.query(query, params);
     res.json({ message: "Recipe updated successfully" });
