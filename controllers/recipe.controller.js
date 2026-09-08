@@ -1,6 +1,7 @@
 import pool from "../config/db.js";
 import fs from "fs";
 import path from "path";
+import db from "../config/db.js";
 
 // 1. جلب جميع الوصفات
 export const getRecipes = async (req, res) => {
