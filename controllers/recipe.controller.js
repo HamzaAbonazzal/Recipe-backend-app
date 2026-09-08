@@ -214,24 +214,27 @@ export const updateRecipe = async (req, res) => {
     servings,
   } = req.body;
 
-  // 1. أخذ رابط Cloudinary المباشر من req.file.path
+  // أخذ رابط الصورة الجديد إن وُجد
   const image_url = req.file ? req.file.path : null;
 
   try {
-    // 2. بناء استعلام التحديث بشكل دقيق
+    // طباعة البيانات القادمة للتأكد من سلامتها في Render Logs
+    console.log("--- Updating Recipe ID:", id);
+    console.log("Received Body:", req.body);
+    console.log("Uploaded Image Path:", image_url);
+
     let query = `
-      UPDATE recipes
+      UPDATE recipes 
       SET title_ar=?, title_en=?, details_ar=?, details_en=?, category=?, prep_time=?, servings=?
       ${image_url ? ", image_url=?" : ""}
       WHERE id=?
     `;
 
-    // 3. ترتيب القيم الممررة لقاعدة البيانات
     let params = [
-      title_ar || null,
-      title_en || null,
-      details_ar || null,
-      details_en || null,
+      title_ar || "",
+      title_en || "",
+      details_ar || "",
+      details_en || "",
       category || "main",
       prep_time || null,
       servings || null,
@@ -241,12 +244,17 @@ export const updateRecipe = async (req, res) => {
       params.push(image_url);
     }
 
-    params.push(id); // إضافة الـ ID في النهاية لتلبية شرط WHERE id=?
+    params.push(id);
 
     await db.query(query, params);
     res.json({ message: "Recipe updated successfully" });
   } catch (error) {
-    console.error("Error updating recipe:", error);
-    res.status(500).json({ error: error.message });
+    // طباعة الخطأ التفصيلي في سيرفر Render
+    console.error("SQL/Server Update Error Details:", error);
+    res.status(500).json({
+      error: error.message,
+      sqlState: error.sqlState,
+      code: error.code,
+    });
   }
 };
